@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevDetective - GitHub Profile Analyzer</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="light-theme">
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="logo">
+                    <span class="logo-icon">🔍</span>
+                    DevDetective
+                </h1>
+                <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
+                    <span class="theme-icon">🌙</span>
+                </button>
+            </div>
+            <p class="subtitle">Discover and analyze GitHub profiles with powerful insights</p>
+        </header>
+
+        <!-- Search Section -->
+        <section class="search-section">
+            <div class="search-container">
+                <div class="search-input-wrapper">
+                    <input 
+                        type="text" 
+                        id="search-input" 
+                        class="search-input" 
+                        placeholder="Enter GitHub username (e.g., octocat)"
+                        autocomplete="off"
+                    >
+                    <button id="search-btn" class="search-btn">
+                        <span class="search-icon">🔍</span>
+                        Search
+                    </button>
+                </div>
+                <div class="search-suggestions">
+                    <span class="suggestion-label">Try:</span>
+                    <button class="suggestion-btn" data-username="octocat">octocat</button>
+                    <button class="suggestion-btn" data-username="torvalds">torvalds</button>
+                    <button class="suggestion-btn" data-username="gaearon">gaearon</button>
+                    <button class="suggestion-btn" data-username="addyosmani">addyosmani</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Loading State -->
+        <div id="loading" class="loading hidden">
+            <div class="loading-spinner"></div>
+            <p>Analyzing GitHub profile...</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="error" class="error hidden">
+            <div class="error-icon">❌</div>
+            <h3>User Not Found</h3>
+            <p id="error-message">The GitHub user you're looking for doesn't exist or the API limit has been reached.</p>
+            <button id="retry-btn" class="retry-btn">Try Again</button>
+        </div>
+
+        <!-- Profile Results -->
+        <div id="profile-container" class="profile-container hidden">
+            <!-- User Info Card -->
+            <div class="user-card">
+                <div class="user-avatar-section">
+                    <img id="user-avatar" class="user-avatar" src="/placeholder.svg" alt="User Avatar">
+                    <div class="user-status">
+                        <span id="user-status-indicator" class="status-indicator"></span>
+                        <span id="user-status-text" class="status-text">Active</span>
+                    </div>
+                </div>
+                
+                <div class="user-info">
+                    <div class="user-header">
+                        <h2 id="user-name" class="user-name"></h2>
+                        <a id="user-profile-link" class="profile-link" href="" target="_blank" rel="noopener noreferrer">
+                            View on GitHub →
+                        </a>
+                    </div>
+                    <p id="user-username" class="user-username"></p>
+                    <p id="user-bio" class="user-bio"></p>
+                    
+                    <div class="user-meta">
+                        <div class="meta-item">
+                            <span class="meta-icon">📍</span>
+                            <span id="user-location" class="meta-text">Not specified</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-icon">🏢</span>
+                            <span id="user-company" class="meta-text">Not specified</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-icon">🔗</span>
+                            <a id="user-blog" class="meta-link" href="" target="_blank" rel="noopener noreferrer">Not specified</a>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-icon">📅</span>
+                            <span id="user-joined" class="meta-text"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">📚</div>
+                    <div class="stat-content">
+                        <h3 id="public-repos" class="stat-number">0</h3>
+                        <p class="stat-label">Public Repos</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-content">
+                        <h3 id="followers" class="stat-number">0</h3>
+                        <p class="stat-label">Followers</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">👤</div>
+                    <div class="stat-content">
+                        <h3 id="following" class="stat-number">0</h3>
+                        <p class="stat-label">Following</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⭐</div>
+                    <div class="stat-content">
+                        <h3 id="total-stars" class="stat-number">0</h3>
+                        <p class="stat-label">Total Stars</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="charts-section">
+                <div class="chart-card">
+                    <h3 class="chart-title">Top Languages</h3>
+                    <div class="chart-container">
+                        <canvas id="languages-chart"></canvas>
+                    </div>
+                    <div id="no-languages" class="no-data hidden">
+                        <p>No language data available</p>
+                    </div>
+                </div>
+                
+                <div class="chart-card">
+                    <h3 class="chart-title">Repository Stats</h3>
+                    <div class="chart-container">
+                        <canvas id="repos-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Repositories -->
+            <div class="repos-section">
+                <h3 class="section-title">Recent Repositories</h3>
+                <div id="repos-container" class="repos-grid">
+                    <!-- Repositories will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Initial State -->
+        <div id="initial-state" class="initial-state">
+            <div class="initial-content">
+                <div class="initial-icon">🚀</div>
+                <h2>Welcome to DevDetective</h2>
+                <p>Enter a GitHub username above to start exploring profiles and discover insights about developers' coding journey.</p>
+                <div class="features-list">
+                    <div class="feature-item">
+                        <span class="feature-icon">📊</span>
+                        <span>Language Analytics</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">📈</span>
+                        <span>Repository Insights</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">🎨</span>
+                        <span>Beautiful Visualizations</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
